@@ -1,0 +1,58 @@
+Python: How to Scrape Websites Anonymously...
+Published on September 26, 2016
+LikePython: How to Scrape Websites Anonymously...33Comment0ShareShare Python: How to Scrape Websites Anonymously...2
+Afsheen Khosravian
+Afsheen Khosravian
+Senior Full Stack Software Engineer
+* This article assumes you already know how to write a scraper. I’m just going to show you how to make that scraper anonymous.
+
+A while back, I was writing a python scraper to pull 10,000 pages from a website. The script worked, but my IP got blocked after pulling about 200 pages. I started wondering if there was a way to scrape anonymously, so I don't get blocked from getting the rest of the pages.
+
+
+
+I looked into Tor (https://www.torproject.org/about/overview.html.en) which I had heard can help anonymize my traffic. After a bit of googling, I stumbled on a nifty python library called ‘stem’ (https://stem.torproject.org/). This library was the secret sauce to hiding my IP so I could scrape without getting blocked.
+
+Here's how to use the python library 'stem' to anonymize your scraper:
+
+This was my setup:
+
+Ubuntu 12.04
+Python 2.7
+Stem 1.4
+PySocks 1.5.6
+First, install Tor (https://www.torproject.org/docs/debian.html.en):
+
+sudo apt-get install tor
+Now, install the ‘stem’ python library (https://stem.torproject.org/download.html):
+
+sudo apt-get install python-stem
+sudo easy_install pip
+sudo pip install stem
+Finally, install 'pysocks' (https://pypi.python.org/pypi/PySocks):
+
+pip install PySocks
+After you've installed everything, we can now setup the script. All you need to do is add the following to your python script:
+
+import socks
+import socket
+
+import stem.process
+
+SOCKS_PORT=7000# You can change the port number
+
+tor_process = stem.process.launch_tor_with_config(
+    config = {
+        'SocksPort': str(SOCKS_PORT),
+    },
+)
+
+socks.setdefaultproxy(proxy_type=socks.PROXY_TYPE_SOCKS5,
+                      addr="127.0.0,1", #theres a ',' change it to '.' -- linkedin was being glitchy
+                      port=SOCKS_PORT)
+socket.socket = socks.socksocket #Write your scraping code here -- I use BeautifulSoup for scraping
+
+tor_process.kill()
+
+Note: You may need to change the rate at which Tor changes your identity depending on how long your script will be running. If your script still gets blocked from the site you are scraping add the following line to /etc/tor/torrc :
+
+set MaxCircuitDirtiness 6000#This is 6000 seconds -- adjust if needed
